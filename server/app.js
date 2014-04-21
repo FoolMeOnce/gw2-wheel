@@ -1,5 +1,6 @@
 var util = require("util");
 var io = require("socket.io");
+var Client = require("./Client").Client;
 
 var clients, socket;
 
@@ -28,6 +29,11 @@ function onSocketConnection(client) {
 
 function onClientConnect() {
 	util.log("Client has connected: "+this.id);
+
+	var newClient = new Client();
+	newClient = this.id;
+
+	clients.push(newClient);
 };
 
 function onClientDisconnect() {
