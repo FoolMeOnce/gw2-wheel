@@ -50,7 +50,6 @@ function onNewClient(data) {
 	for(var i = 0; i < clients.length; i++) {
 		var c = clients[i];
 		this.emit("new client", {id: c.id, name: c.getName()});
-		util.log("Sent client data for "+c.getName());
 	}
 
 	clients.push(newClient);
