@@ -48,6 +48,7 @@ function onSocketConnect() {
 		location.reload();
   console.log("Connected to server.");
   socket.emit("new client", {name: localClient.getName()});
+	updateUsers();
 }
 
 function onSocketDisconnect() {
@@ -60,6 +61,7 @@ function onNewClient(data) {
   newClient.id = data.id;
 	newClient.name = data.name;
   remoteClients.push(newClient);
+	updateUsers();
 }
 
 function onRemoveClient(data) {
@@ -71,6 +73,7 @@ function onRemoveClient(data) {
   }
 
   remoteClients.splice(remoteClients.indexOf(removeClient), 1);
+	updateUsers();
 }
 
 function onSpin() {
@@ -84,6 +87,14 @@ function requestSpin() {
 
 function onReload() {
 	location.reload();
+}
+
+function updateUsers() {
+	$('#users').empty();
+	$.each(remoteClients, function(key, value) {
+		$('#users').append(value.getName()+", ");
+	});
+	$('#users').append(localClient.getName());
 }
 
 function clientById(id) {
