@@ -1,6 +1,17 @@
+@import url('http://fonts.googleapis.com/css?family=Electrolize');
+
+html, body {
+	font-family: 'Electrolize';
+}
+
 canvas {
 	width: 900px;
-    height: 600px;
+	height: 600px;
 //	border: 1px solid red;
+}
+
+#status {
+	font-size: 32px;
+	font-weight: bold;
 }
 

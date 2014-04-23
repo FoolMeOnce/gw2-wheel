@@ -13,7 +13,8 @@ var AUDIO_DIR = "client/audio/";
 
 var socket,
 		localClient,
-		remoteClients;
+		remoteClients,
+		picked;
 
 var disconnected = false;
 
@@ -40,6 +41,7 @@ function setEventHandlers() {
   socket.on("new client", onNewClient);
   socket.on("remove client", onRemoveClient);
 	socket.on("spin", onSpin);
+	socket.on("picked", onPicked);
 	socket.on("reload", onReload);
 }
 
@@ -95,11 +97,25 @@ function requestOverride() {
 	socket.emit("override", {password: password});
 }
 
+function onPicked(data) {
+	picked = data.picked;
+	update();
+}
+
 function onReload() {
 	location.reload();
 }
 
 function update() {
+	$('#status').empty();
+	var content;
+	if(picked ==  undefined) {
+		content = "No one has been picked - the wheel is locked.";
+	} else {
+		content = picked+" has been selected by the gods. Spin the wheel!";
+	}
+	$('#status').append(content);
+
 	$('#users').empty();
 	$.each(remoteClients, function(key, value) {
 		$('#users').append(value.getName()+", ");

@@ -45,6 +45,10 @@ function onClientDisconnect() {
 
 	clients.splice(clients.indexOf(removeClient), 1);
 	this.broadcast.emit("remove client", {id: this.id});
+
+	if(this.id == spinner) {
+		pickSpinner();
+	}
 }
 
 function onNewClient(data) {
@@ -52,6 +56,7 @@ function onNewClient(data) {
 	util.log("Client set name: "+data.name);
 	newClient.id = this.id;
 	newClient.name = data.name;
+	this.emit("picked", {picked: clientById(spinner).name});
 	this.broadcast.emit("new client", {id: newClient.id, name: newClient.getName()});
 
 	for(var i = 0; i < clients.length; i++) {
@@ -77,7 +82,7 @@ function onRequestOverride(data) {
 	if(data.password === pwOverride) {
 		status = "succeeded";
 		spinner = this.id;
-		socket.emit("spinner", {picked: spinner});
+		socket.sockets.emit("picked", {picked: clientById(spinner).name});
 	}
 
 	util.log("Attempted override by user "+clientById(this.id).name+" using password "+data.password+" "+status);
@@ -85,20 +90,22 @@ function onRequestOverride(data) {
 
 function pickSpinner() {
 	spinner = randomClient();
-	socket.emit("spinner", {picked: spinner});
 	util.log("Random spinner picked: "+spinner+" | "+clientById(spinner).name);
+
+	socket.sockets.emit("picked", {picked: clientById(spinner).name});
+
+	return spinner;
 }
 
 function onSpin() {
 	requester = clientById(this.id);
 
-	util.log(requester.id+" ~ "+spinner);
-
 	if(requester.id === spinner) {
 		util.log("Spin requested by "+requester.name+": succeeded");
   	var v = (Math.random() * 4) - 2;
-		this.emit("spin", {variance: v});
-		this.broadcast.emit("spin", {variance: v});
+		socket.sockets.emit("spin", {variance: v});
+		spinner = undefined;
+		socket.sockets.emit("picked", {picked: clientById(spinner).name});
 	} else {
 		util.log("Spin requested by "+requester.name+": failed");
 	}
