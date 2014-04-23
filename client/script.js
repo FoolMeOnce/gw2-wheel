@@ -16,7 +16,8 @@ var socket,
 		remoteClients;
 
 function initSocket() {
-	localClient = new Client("test_client");
+	name = prompt("What's your name?");
+	localClient = new Client(name);
 	socket = io.connect("http://hord.es", {port: 8000, transports: ["websocket"]});
 	remoteClients = [];
 	setEventHandlers();
@@ -25,8 +26,8 @@ function initSocket() {
 function setEventHandlers() {
   socket.on("connect", onSocketConnect);
   socket.on("disconnect", onSocketDisconnect);
-//  socket.on("new client", onNewClient);
-//  socket.on("remove client", onRemoveClient);
+  socket.on("new client", onNewClient);
+  socket.on("remove client", onRemoveClient);
 };
 
 function onSocketConnect() {
@@ -39,10 +40,9 @@ function onSocketDisconnect() {
 };
 
 function onNewClient(data) {
-  console.log("New client connected: "+data.id);
-
   var newClient = new Client(data.name);
   newClient.id = data.id;
+	newClient.name = data.name;
   remoteClients.push(newClient);
 };
 

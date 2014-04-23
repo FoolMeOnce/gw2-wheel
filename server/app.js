@@ -15,37 +15,54 @@ function init() {
 	});
 
 	setEventHandlers();
-};
+}
 
 function setEventHandlers() {
 	socket.sockets.on("connection", onSocketConnection);
-};
+}
 
 function onSocketConnection(client) {
 	util.log("New client has connected: "+client.id);
 	client.on("disconnect", onClientDisconnect);
 	client.on("new client", onNewClient);
-};
+}
 
 function onClientDisconnect() {
 	util.log("Client has disconnected: "+this.id);
-};
+
+	var removeClient = clientById(this.id);
+
+	if(!removeClient) {
+		util.log("Client not found: "+this.id);
+		return;
+	}
+
+	clients.splice(clients.indexOf(removeClient), 1);
+	this.broadcast.emit("remove client", {id: this.id});
+}
 
 function onNewClient(data) {
 	var newClient = new Client(data.name);
+	util.log("Client set name: "+data.name);
 	newClient.id = this.id;
-	this.broadcast.emit("new client", {name: newClient.name});
+	this.broadcast.emit("new client", {id: newClient.id, name: newClient.getName()});
+
+	for(var i = 0; i < clients.length; i++) {
+		var c = clients[i];
+		this.emit("new client", {id: c.id, name: c.getName()});
+		util.log("Sent client data for "+c.getName());
+	}
 
 	clients.push(newClient);
-};
+}
 
 function clientById(id) {
 	for(var i = 0; i < clients.length; i++) {
 		if(clients[i].id == id) {
 			return clients[i];
 		}
-	};
+	}
 	return false;
-};
+}
 
 init();
