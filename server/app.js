@@ -25,6 +25,7 @@ function onSocketConnection(client) {
 	util.log("New client has connected: "+client.id);
 	client.on("disconnect", onClientDisconnect);
 	client.on("new client", onNewClient);
+	client.on("spin", onSpin);
 }
 
 function onClientDisconnect() {
@@ -53,6 +54,12 @@ function onNewClient(data) {
 	}
 
 	clients.push(newClient);
+}
+
+function onSpin() {
+	util.log("Spin requested by "+this.id+"!");
+	this.emit("spin");
+	this.broadcast.emit("spin");
 }
 
 function clientById(id) {

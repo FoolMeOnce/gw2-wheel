@@ -39,6 +39,7 @@ function setEventHandlers() {
   socket.on("disconnect", onSocketDisconnect);
   socket.on("new client", onNewClient);
   socket.on("remove client", onRemoveClient);
+	socket.on("spin", onSpin);
 	socket.on("reload", onReload);
 }
 
@@ -70,6 +71,15 @@ function onRemoveClient(data) {
   }
 
   remoteClients.splice(remoteClients.indexOf(removeClient), 1);
+}
+
+function onSpin() {
+	console.log("Spinning!");
+	wheel.spin();
+}
+
+function requestSpin() {
+	socket.emit("spin");
 }
 
 function onReload() {
@@ -144,7 +154,7 @@ var wheel = {
     ctx.canvas.width = $('#canvas').width();
     ctx.canvas.height = $('#canvas').height();
     
-    canvas.addEventListener("click", wheel.spin, false);
+    canvas.addEventListener("click", requestSpin, false);
   },
   
   initAudio: function() {
