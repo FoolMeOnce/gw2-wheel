@@ -11,5 +11,3 @@ var Client = function(n) {
 		id: id
 	}
 };
-
-exports.Client = Client;

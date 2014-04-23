@@ -1,4 +1,4 @@
-shuffle = function(o) {
+function shuffle(o) {
   for ( var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
     ;
   return o;
@@ -9,7 +9,62 @@ var cHeight = $('#canvas').height();
 var PI2 = Math.PI * 2;
 var PIHALF = Math.PI / 2;
 
-var AUDIO_DIR = "audio/";
+var AUDIO_DIR = "client/audio/";
+
+var socket,
+		localClient,
+		remoteClients;
+
+function initSocket() {
+	localClient = new Client("test_client");
+	socket = io.connect("http://hord.es", {port: 8000, transports: ["websocket"]});
+	remoteClients = [];
+	setEventHandlers();
+};
+
+function setEventHandlers() {
+  socket.on("connect", onSocketConnect);
+  socket.on("disconnect", onSocketDisconnect);
+//  socket.on("new client", onNewClient);
+//  socket.on("remove client", onRemoveClient);
+};
+
+function onSocketConnect() {
+  console.log("Connected to socket server.");
+  socket.emit("new client", {name: localClient.getName()});
+};
+
+function onSocketDisconnect() {
+  console.log("Disconnected from socket server.");
+};
+
+function onNewClient(data) {
+  console.log("New client connected: "+data.id);
+
+  var newClient = new Client(data.name);
+  newClient.id = data.id;
+  remoteClients.push(newClient);
+};
+
+function onRemoveClient(data) {
+  var removeClient = clientById(data.id);
+
+  if (!removeClient) {
+      console.log("Client not found: "+data.id);
+      return;
+  };
+
+  remoteClients.splice(remoteClients.indexOf(removeClient), 1);
+};
+
+function clientById(id) {
+    var i;
+    for (i = 0; i < remoteClients.length; i++) {
+        if (remoteClients[i].id == id)
+            return remoteClients[i];
+    };
+    return false;
+};
 
 var wheel = {
   canvas: null,
@@ -38,7 +93,7 @@ var wheel = {
   slices: [
     "Jump off a cliff!",
     "Quaggan tonics!",
-    "Nekkid battle!",
+    "No armor!",
     "Emote spam!",
     "No utility skills!",
     "Run in circles!",
@@ -52,12 +107,13 @@ var wheel = {
   sounds: [],
   
   init: function() {
+		initSocket();
     wheel.initWheel();
     wheel.initCanvas();
     wheel.initAudio();
     wheel.draw();
   },
-  
+
   initWheel: function() {
     shuffle(wheel.colors);
   },
@@ -75,11 +131,12 @@ var wheel = {
   
   initAudio: function() {
     for(var i = 0; i < 6; i++) {
-      var sound = new Audio(AUDIO_DIR+"click"+i+".mp3");
+			var filename = AUDIO_DIR+"click"+i+".mp3";
+      var sound = new Audio(filename);
       wheel.sounds.push(sound);
     }
   },
-  
+
   playSound: function() {
     var num = wheel.currentSound;
     if(wheel.currentSound == 5) {
@@ -260,6 +317,7 @@ var wheel = {
     ctx.restore();
   },
 };
+
 $(document).ready(function() {
     wheel.init();
 });
