@@ -48,7 +48,7 @@ function onSocketConnect() {
 		location.reload();
   console.log("Connected to server.");
   socket.emit("new client", {name: localClient.getName()});
-	updateUsers();
+	update();
 }
 
 function onSocketDisconnect() {
@@ -61,7 +61,7 @@ function onNewClient(data) {
   newClient.id = data.id;
 	newClient.name = data.name;
   remoteClients.push(newClient);
-	updateUsers();
+	update();
 }
 
 function onRemoveClient(data) {
@@ -73,12 +73,11 @@ function onRemoveClient(data) {
   }
 
   remoteClients.splice(remoteClients.indexOf(removeClient), 1);
-	updateUsers();
+	update();
 }
 
 function onSpin(data) {
 	v = data.variance;
-	console.log("Spinning with "+v+"!");
 	wheel.spin(v);
 }
 
@@ -86,11 +85,21 @@ function requestSpin() {
 	socket.emit("spin");
 }
 
+function requestPick() {
+	password = prompt("What's the password?");
+	socket.emit("pick", {password: password});
+}
+
+function requestOverride() {
+	password = prompt("What's the password?");
+	socket.emit("override", {password: password});
+}
+
 function onReload() {
 	location.reload();
 }
 
-function updateUsers() {
+function update() {
 	$('#users').empty();
 	$.each(remoteClients, function(key, value) {
 		$('#users').append(value.getName()+", ");

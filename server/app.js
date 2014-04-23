@@ -2,7 +2,10 @@ var util = require("util");
 var io = require("socket.io");
 var Client = require("./Client").Client;
 
-var socket, clients;
+var socket, clients, spinner;
+
+var pwPick = "tomato";
+var pwOverride = "lemon";
 
 function init() {
 	clients = [];
@@ -26,10 +29,12 @@ function onSocketConnection(client) {
 	client.on("disconnect", onClientDisconnect);
 	client.on("new client", onNewClient);
 	client.on("spin", onSpin);
+	client.on("pick", onRequestPick);
+	client.on("override", onRequestOverride);
 }
 
 function onClientDisconnect() {
-	util.log("Client has disconnected: "+this.id);
+	util.log("Client has disconnected: "+this.id+" | "+clientById(this.id).name);
 
 	var removeClient = clientById(this.id);
 
@@ -46,6 +51,7 @@ function onNewClient(data) {
 	var newClient = new Client(data.name);
 	util.log("Client set name: "+data.name);
 	newClient.id = this.id;
+	newClient.name = data.name;
 	this.broadcast.emit("new client", {id: newClient.id, name: newClient.getName()});
 
 	for(var i = 0; i < clients.length; i++) {
@@ -56,11 +62,46 @@ function onNewClient(data) {
 	clients.push(newClient);
 }
 
+function onRequestPick(data) {
+	var status = "failed";
+	if(data.password === pwPick) {
+		status = "succeeded";
+		pickSpinner();
+	}
+
+	util.log("Attempted pick by user "+clientById(this.id).name+" using password "+data.password+" "+status);
+}
+
+function onRequestOverride(data) {
+	var status = "failed";
+	if(data.password === pwOverride) {
+		status = "succeeded";
+		spinner = this.id;
+		socket.emit("spinner", {picked: spinner});
+	}
+
+	util.log("Attempted override by user "+clientById(this.id).name+" using password "+data.password+" "+status);
+}
+
+function pickSpinner() {
+	spinner = randomClient();
+	socket.emit("spinner", {picked: spinner});
+	util.log("Random spinner picked: "+spinner+" | "+clientById(spinner).name);
+}
+
 function onSpin() {
-	util.log("Spin requested by "+this.id+"!");
-  var v = (Math.random() * 4) - 2;
-	this.emit("spin", {variance: v});
-	this.broadcast.emit("spin", {variance: v});
+	requester = clientById(this.id);
+
+	util.log(requester.id+" ~ "+spinner);
+
+	if(requester.id === spinner) {
+		util.log("Spin requested by "+requester.name+": succeeded");
+  	var v = (Math.random() * 4) - 2;
+		this.emit("spin", {variance: v});
+		this.broadcast.emit("spin", {variance: v});
+	} else {
+		util.log("Spin requested by "+requester.name+": failed");
+	}
 }
 
 function clientById(id) {
@@ -70,6 +111,10 @@ function clientById(id) {
 		}
 	}
 	return false;
+}
+
+function randomClient() {
+	return clients[Math.floor(Math.random() * clients.length)].id;
 }
 
 init();
