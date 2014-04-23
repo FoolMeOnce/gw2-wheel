@@ -58,8 +58,9 @@ function onNewClient(data) {
 
 function onSpin() {
 	util.log("Spin requested by "+this.id+"!");
-	this.emit("spin");
-	this.broadcast.emit("spin");
+  var v = (Math.random() * 4) - 2;
+	this.emit("spin", {variance: v});
+	this.broadcast.emit("spin", {variance: v});
 }
 
 function clientById(id) {

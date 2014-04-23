@@ -76,9 +76,10 @@ function onRemoveClient(data) {
 	updateUsers();
 }
 
-function onSpin() {
-	console.log("Spinning!");
-	wheel.spin();
+function onSpin(data) {
+	v = data.variance;
+	console.log("Spinning with "+v+"!");
+	wheel.spin(v);
 }
 
 function requestSpin() {
@@ -188,10 +189,9 @@ var wheel = {
     sound.play();
   },
   
-  spin: function() {
+  spin: function(variance) {
     if(wheel.timerHandle == 0) {
       wheel.startTime = new Date().getTime();
-      var variance = (Math.random() * 4) - 2;
       wheel.maxSpeed = Math.PI / (12 + variance)
       wheel.timerHandle = setInterval(wheel.tick, wheel.frameDelay);
     }
