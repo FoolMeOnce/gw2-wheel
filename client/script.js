@@ -1,4 +1,4 @@
-function shuffle(o) {
+function shuffle(o) { // Simple array shuffle function borrowed from somewhere.
   for ( var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
     ;
   return o;
@@ -6,7 +6,7 @@ function shuffle(o) {
 
 var cWidth = $('#canvas').width();
 var cHeight = $('#canvas').height();
-var PI2 = Math.PI * 2;
+var PI2 = Math.PI * 2; // Helper vars (Yay radians!)
 var PIHALF = Math.PI / 2;
 
 var AUDIO_DIR = "client/audio/";
@@ -15,36 +15,51 @@ var socket,
 		localClient,
 		remoteClients;
 
+var disconnected = false;
+
 function initSocket() {
-	name = prompt("What's your name?");
+	name = namePrompt();
 	localClient = new Client(name);
 	socket = io.connect("http://hord.es", {port: 8000, transports: ["websocket"]});
 	remoteClients = [];
 	setEventHandlers();
-};
+}
+
+function namePrompt() {
+	var n = prompt("What's your name?");
+	if(n == null || n === "") { // Seriously? It's really not that hard.
+		alert("You suck at names. Try again.");
+		n = namePrompt(); // Recursive; keep prompting the user.
+	}
+	return n;
+}
 
 function setEventHandlers() {
   socket.on("connect", onSocketConnect);
   socket.on("disconnect", onSocketDisconnect);
   socket.on("new client", onNewClient);
   socket.on("remove client", onRemoveClient);
-};
+	socket.on("reload", onReload);
+}
 
 function onSocketConnect() {
-  console.log("Connected to socket server.");
+	if(disconnected) // If we were disconnected, reload client.
+		location.reload();
+  console.log("Connected to server.");
   socket.emit("new client", {name: localClient.getName()});
-};
+}
 
 function onSocketDisconnect() {
-  console.log("Disconnected from socket server.");
-};
+	disconnected = true; // We were disconnected, set flag.
+  console.log("Disconnected from server.");
+}
 
 function onNewClient(data) {
   var newClient = new Client(data.name);
   newClient.id = data.id;
 	newClient.name = data.name;
   remoteClients.push(newClient);
-};
+}
 
 function onRemoveClient(data) {
   var removeClient = clientById(data.id);
@@ -52,19 +67,22 @@ function onRemoveClient(data) {
   if (!removeClient) {
       console.log("Client not found: "+data.id);
       return;
-  };
+  }
 
   remoteClients.splice(remoteClients.indexOf(removeClient), 1);
-};
+}
+
+function onReload() {
+	location.reload();
+}
 
 function clientById(id) {
-    var i;
-    for (i = 0; i < remoteClients.length; i++) {
+    for (var i = 0; i < remoteClients.length; i++) {
         if (remoteClients[i].id == id)
             return remoteClients[i];
-    };
+    }
     return false;
-};
+}
 
 var wheel = {
   canvas: null,
