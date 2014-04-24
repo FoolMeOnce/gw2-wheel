@@ -40,6 +40,7 @@ function setEventHandlers() {
   socket.on("disconnect", onSocketDisconnect);
   socket.on("new client", onNewClient);
   socket.on("remove client", onRemoveClient);
+	socket.on("tick", onTick);
 	socket.on("spin", onSpin);
 	socket.on("picked", onPicked);
 	socket.on("reload", onReload);
@@ -78,10 +79,13 @@ function onRemoveClient(data) {
 	update();
 }
 
+ // TODO remove deprecated function
+/*
 function onSpin(data) {
 	v = data.variance;
 	wheel.spin(v);
 }
+*/
 
 function requestSpin() {
 	socket.emit("spin");
@@ -104,6 +108,11 @@ function onPicked(data) {
 
 function onReload() {
 	location.reload();
+}
+
+function onTick(data) {
+	wheel.currentAngle = data.angle;
+	wheel.tick();
 }
 
 function update() {
@@ -213,7 +222,9 @@ var wheel = {
     var sound = wheel.sounds[num];
     sound.play();
   },
-  
+
+ // TODO remove function, moved serverside
+/*  
   spin: function(variance) {
     if(wheel.timerHandle == 0) {
       wheel.startTime = new Date().getTime();
@@ -221,9 +232,12 @@ var wheel = {
       wheel.timerHandle = setInterval(wheel.tick, wheel.frameDelay);
     }
   },
-  
+*/
+
+  // TODO remove function, code moved serverside. onTick() will replace this function
   tick: function() {
     wheel.draw();
+/*
     var time = (new Date().getTime() - wheel.startTime);
     var acceleration = 0;
     var stopped = false;
@@ -258,6 +272,7 @@ var wheel = {
         wheel.currentAngle -= PI2;
       }
     }
+*/
   },
   
   draw: function() {
