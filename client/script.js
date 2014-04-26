@@ -28,10 +28,15 @@ function initSocket() {
 
 function namePrompt() {
 	var n = prompt("What's your name?");
-	if(n == null || n === "") { // Seriously? It's really not that hard.
+	if(n == null || n === "") {
+		n = "llama"; // No name? LLAMA!
+ // Users found this really annoying. To be honest it is, need to find an alternative.
+/*
 		alert("You suck at names. Try again.");
 		n = namePrompt(); // Recursive; keep prompting the user.
+*/
 	}
+
 	return n;
 }
 
@@ -41,7 +46,6 @@ function setEventHandlers() {
   socket.on("new client", onNewClient);
   socket.on("remove client", onRemoveClient);
 	socket.on("tick", onTick);
-	socket.on("spin", onSpin);
 	socket.on("picked", onPicked);
 	socket.on("reload", onReload);
 }
@@ -78,14 +82,6 @@ function onRemoveClient(data) {
   remoteClients.splice(remoteClients.indexOf(removeClient), 1);
 	update();
 }
-
- // TODO remove deprecated function
-/*
-function onSpin(data) {
-	v = data.variance;
-	wheel.spin(v);
-}
-*/
 
 function requestSpin() {
 	socket.emit("spin");
@@ -223,56 +219,17 @@ var wheel = {
     sound.play();
   },
 
- // TODO remove function, moved serverside
-/*  
-  spin: function(variance) {
-    if(wheel.timerHandle == 0) {
-      wheel.startTime = new Date().getTime();
-      wheel.maxSpeed = Math.PI / (12 + variance)
-      wheel.timerHandle = setInterval(wheel.tick, wheel.frameDelay);
-    }
-  },
-*/
-
-  // TODO remove function, code moved serverside. onTick() will replace this function
   tick: function() {
     wheel.draw();
-/*
-    var time = (new Date().getTime() - wheel.startTime);
-    var acceleration = 0;
-    var stopped = false;
-    
-    if(time < wheel.spinUp) {
-      acceleration = time / wheel.spinUp;
-      wheel.angleDelta = wheel.maxSpeed * Math.sin(acceleration * PIHALF);
-    } else {
-      acceleration = time / wheel.spinDown;
-      wheel.angleDelta = wheel.maxSpeed * Math.sin(acceleration * PIHALF + PIHALF);
-      if(acceleration >= 1)
-        stopped = true;
-    }
-    
-    wheel.diffAngle += wheel.currentAngle - wheel.prevAngle;
-    
-    if(wheel.diffAngle > wheel.tickDistance) {
-      wheel.playSound();
-      wheel.diffAngle - wheel.tickDistance;
-    }
-    
-    wheel.diffAngle = wheel.diffAngle % wheel.tickDistance;
-    
-    wheel.prevAngle = wheel.currentAngle;
-    wheel.currentAngle += wheel.angleDelta;
-    
-    if(stopped) {
-      clearInterval(wheel.timerHandle);
-      wheel.timerHandle = 0;
-      wheel.angleDelta = 0;
-      while(wheel.currentAngle > PI2) {
-        wheel.currentAngle -= PI2;
-      }
-    }
-*/
+
+		// Play a sound for each time the wheel moves `tickDistance`
+		wheel.diffAngle += wheel.currentAngle - wheel.prevAngle;
+		if(wheel.diffAngle > wheel.tickDistance) {
+			wheel.playSound();
+			wheel.diffAngle - wheel.tickDistance;
+		}
+		wheel.diffAngle %= wheel.tickDistance;
+		wheel.prevAngle = wheel.currentAngle;
   },
   
   draw: function() {

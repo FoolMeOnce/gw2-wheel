@@ -103,11 +103,9 @@ function pickSpinner() {
 function onSpin() {
 	requester = clientById(this.id);
 
-	if(true || requester.id === spinner) { // TODO temporary override: REMOVE "true || " BEFORE MERGING BRANCH!
+	if(requester.id === spinner) {
 		util.log("Spin requested by "+requester.name+": succeeded");
   	var v = (Math.random() * 4) - 2;
- // initiate clientside spin
-//		socket.sockets.emit("spin", {variance: v});
 		wheel.spin(v);
 		spinner = undefined;
 		socket.sockets.emit("picked", {picked: clientById(spinner).name});
@@ -134,15 +132,16 @@ init();
 var wheel = {
 	timerHandle: 0,
 	currentAngle: 0,
-	frameDelay: 10,
+	frameDelay: 30,
 
 	spinUp: 2000,
 	spinDown: 17000,
 	
   spin: function(variance) {
     if(wheel.timerHandle == 0) {
+			wheel.currentAngle = 0;
       wheel.startTime = new Date().getTime();
-      wheel.maxSpeed = Math.PI / (12 + variance)
+      wheel.maxSpeed = Math.PI / (8 + variance)
       wheel.timerHandle = setInterval(wheel.tick, wheel.frameDelay);
     }
   },
@@ -169,12 +168,6 @@ var wheel = {
       clearInterval(wheel.timerHandle);
       wheel.timerHandle = 0;
       wheel.angleDelta = 0;
- // won't be necessary because wheel will reset after each spin
-/*
-      while(wheel.currentAngle > PI2) {
-        wheel.currentAngle -= PI2;
-      }
-*/
     }
 	},
 };
